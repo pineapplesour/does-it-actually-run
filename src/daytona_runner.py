@@ -45,3 +45,50 @@ def healthcheck() -> dict:
     r = run_script("set -e\necho SANDBOX_UP\n")
     return {"ok": r["exit_code"] == 0 and "SANDBOX_UP" in r["stdout"],
             "seconds": r["seconds"], "detail": (r["stdout"] or r["error"])[:120]}
+
+
+ENV_PROBE = r'''
+echo "user=$(whoami)"
+echo "uid=$(id -u)"
+echo "sudo=$(sudo -n true 2>/dev/null && echo passwordless || echo unavailable)"
+echo "os=$(. /etc/os-release; echo $PRETTY_NAME)"
+echo "python=$(python3 -V 2>&1)"
+echo "pip=$(python3 -m pip -V 2>&1 | cut -d' ' -f1-2)"
+echo "git=$(git --version 2>&1)"
+echo "node=$(node -v 2>/dev/null || echo absent)"
+echo "home=$HOME writable=$(touch $HOME/.w 2>/dev/null && echo yes || echo no)"
+echo "pypi_reachable=$(curl -sS -o /dev/null -w %{http_code} https://pypi.org/simple/ --max-time 15 2>/dev/null || echo blocked)"
+echo "github_reachable=$(curl -sS -o /dev/null -w %{http_code} https://github.com --max-time 15 2>/dev/null || echo blocked)"
+echo "arbitrary_http_egress=$(curl -sS -o /dev/null -w %{http_code} https://httpbin.org/get --max-time 15 2>/dev/null || echo blocked)"
+'''
+
+_env_cache = None
+
+
+def probe_env(force: bool = False) -> dict:
+    """샌드박스 환경을 추측하지 않고 실제로 측정한다.
+
+    이 프로젝트의 원칙이 그대로 적용되는 지점이다. 드래프트 프롬프트에
+    측정값을 주입해야 에이전트가 존재하지 않는 권한을 가정하지 않는다.
+    """
+    global _env_cache
+    if _env_cache is not None and not force:
+        return _env_cache
+    r = run_script(ENV_PROBE, timeout=120)
+    facts = {}
+    for line in (r.get("stdout") or "").splitlines():
+        if "=" in line:
+            k, _, v = line.partition("=")
+            facts[k.strip()] = v.strip()
+    facts["_ok"] = r.get("exit_code") == 0
+    _env_cache = facts
+    return facts
+
+
+def env_brief(facts: dict) -> str:
+    """드래프트 프롬프트에 넣을 사실 블록."""
+    order = ["os", "user", "uid", "sudo", "python", "pip", "git", "node",
+             "home", "writable", "pypi_reachable", "github_reachable",
+             "arbitrary_http_egress"]
+    lines = [f"- {k}: {facts[k]}" for k in order if k in facts]
+    return "\n".join(lines)

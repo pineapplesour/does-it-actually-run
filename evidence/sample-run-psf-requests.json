@@ -3,12 +3,12 @@
     "target": "https://github.com/psf/requests",
     "status": "REPRODUCIBLE",
     "drafts_total": 3,
-    "drafts_passed": 2,
-    "winner": "minimal-r1",
-    "winner_seconds": 3.3,
-    "cross_checks": 0,
-    "cross_check_hits": 0,
-    "confidence": 0.67
+    "drafts_passed": 3,
+    "winner": "literal-r1",
+    "winner_seconds": 3.5,
+    "cross_checks": 3,
+    "cross_check_hits": 2,
+    "confidence": 1.0
   },
   "rows": [
     {
@@ -16,21 +16,21 @@
       "label": "literal-r1",
       "verdict": "PASS",
       "exit_code": 0,
-      "seconds": 4.0,
-      "evidence": "Defaulting to user installation because normal site-packages is not writeable\nRequirement already satisfied: requests in /usr/local/lib/python3.14/site-packages (2.32.5)\nRequirement already satisfied: charset_normalizer<4,>=2 in /usr/local/lib/python3.14/site-packages (from requests) (3.4.7)\nRequirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.14/site-packages (from requests) (3.15)\nRequirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.14/site-packages (from requests) (2.7.0)\nRequirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.14/site-packages (from requests) (2026.4.22)\n\n[notice] A new release of pip is available: 26.0.1 -> 26.2.1\n[notice] To update, run: pip install --upgrade pip\nrequests\nREPRO_OK\n",
+      "seconds": 3.5,
+      "evidence": "Defaulting to user installation because normal site-packages is not writeable\nRequirement already satisfied: requests in /usr/local/lib/python3.14/site-packages (2.32.5)\nRequirement already satisfied: charset_normalizer<4,>=2 in /usr/local/lib/python3.14/site-packages (from requests) (3.4.7)\nRequirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.14/site-packages (from requests) (3.15)\nRequirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.14/site-packages (from requests) (2.7.0)\nRequirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.14/site-packages (from requests) (2026.4.22)\n\n[notice] A new release of pip is available: 26.0.1 -> 26.2.1\n[notice] To update, run: pip install --upgrade pip\nCloning into 'requests'...\n2.32.5\nREPRO_OK\n",
       "meta": {
-        "script": "set -e\nexport DEBIAN_FRONTEND=noninteractive\npip3 install requests\npython3 -c 'import requests; print(requests.__name__)'\necho REPRO_OK\n"
+        "script": "#!/usr/bin/env bash\nset -e\n\nexport DEBIAN_FRONTEND=noninteractive\n\npython -m pip install requests\ngit clone -c fetch.fsck.badTimezone=ignore https://github.com/psf/requests.git\n\npython -c 'import requests; print(requests.__version__)'\necho REPRO_OK"
       }
     },
     {
       "kind": "draft",
       "label": "pragmatic-r1",
-      "verdict": "FAIL",
-      "exit_code": 100,
-      "seconds": 2.4,
-      "evidence": "E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)\n",
+      "verdict": "PASS",
+      "exit_code": 0,
+      "seconds": 10.3,
+      "evidence": "Get:1 http://deb.debian.org/debian trixie InRelease [140 kB]\nGet:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]\nGet:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]\nGet:4 http://deb.debian.org/debian trixie/main amd64 Packages [9,673 kB]\nGet:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [4,412 B]\nGet:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [247 kB]\nFetched 10.2 MB in 1s (15.3 MB/s)\nReading package lists...\nReading package lists...\nBuilding dependency tree...\nReading state information...\ngit is already the newest version (1:2.47.3-0+deb13u1).\nbuild-essential is already the newest version (12.12).\npython3-pip is already the newest version (25.1.1+dfsg-1).\npython3-venv is already the newest version (3.13.5-1).\nca-certificates is already the newest version (20250419).\n0 upgraded, 0 newly installed, 0 to remove and 230 not upgraded.\nCloning into '/tmp/tmp.YGW0oVIaVP/requests'...\n2.34.2\nREPRO_OK\n",
       "meta": {
-        "script": "set -e\nexport DEBIAN_FRONTEND=noninteractive\napt-get update -qq\napt-get install -y -qq git build-essential python3-pip >/dev/null\ngit clone --depth 1 https://github.com/psf/requests.git /src\ncd /src\npip3 install --break-system-packages -q . 2>/dev/null || pip3 install -q .\npython3 -c 'import requests; print(requests.__name__)'\necho REPRO_OK\n"
+        "script": "set -e\n\nexport DEBIAN_FRONTEND=noninteractive\nexport PIP_DISABLE_PIP_VERSION_CHECK=1\n\nsudo apt-get update\nsudo apt-get install -y --no-install-recommends \\\n  git build-essential python3-pip python3-venv ca-certificates\n\nPYTHON_BIN=\"$(command -v python3 || command -v python)\"\nWORKDIR=\"$(mktemp -d)\"\nREPO_DIR=\"$WORKDIR/requests\"\nVENV_DIR=\"$WORKDIR/venv\"\n\ngit clone -c fetch.fsck.badTimezone=ignore \\\n  --depth 1 \\\n  https://github.com/psf/requests.git \\\n  \"$REPO_DIR\"\n\n\"$PYTHON_BIN\" -m venv \"$VENV_DIR\"\n. \"$VENV_DIR/bin/activate\"\n\npython -m pip install -q --upgrade pip\npython -m pip install -q \"$REPO_DIR\"\n\ncd \"$WORKDIR\"\npython -c 'import requests; assert requests.__version__; print(requests.__version__)'\n\necho REPRO_OK"
       }
     },
     {
@@ -38,10 +38,46 @@
       "label": "minimal-r1",
       "verdict": "PASS",
       "exit_code": 0,
-      "seconds": 3.3,
-      "evidence": "imported requests\nREPRO_OK\n",
+      "seconds": 6.9,
+      "evidence": "\n[notice] A new release of pip is available: 26.0.1 -> 26.2.1\n[notice] To update, run: /tmp/tmp.ifidnyDdnG/venv/bin/python -m pip install --upgrade pip\n2.34.2\nREPRO_OK\n",
       "meta": {
-        "script": "set -e\nexport DEBIAN_FRONTEND=noninteractive\npip3 install --break-system-packages -q requests 2>/dev/null || pip3 install -q requests\npython3 -c 'import requests; print(\"imported\", requests.__name__)'\necho REPRO_OK\n"
+        "script": "set -e\nexport DEBIAN_FRONTEND=noninteractive\n\nworkdir=\"$(mktemp -d)\"\npython -m venv \"$workdir/venv\"\n\"$workdir/venv/bin/pip\" install -q git+https://github.com/psf/requests.git\n\"$workdir/venv/bin/python\" -c 'import requests; assert requests.__version__; print(requests.__version__)'\necho REPRO_OK"
+      }
+    },
+    {
+      "kind": "browser",
+      "label": "issues",
+      "verdict": "ERROR",
+      "exit_code": null,
+      "seconds": 0.0,
+      "evidence": "Error: Page.goto: Protocol error (Page.navigate): Requested URL (https://github.com/psf/requests/issues?q=is%3Aissue+install+error) is restricted in accordance with robots.txt. Ask your account manager to get full access for targeting this site (brob). Learn more: https://docs.brightdata.com/scraping-autom",
+      "meta": {
+        "url": "https://github.com/psf/requests/issues?q=is%3Aissue+install+error",
+        "title": ""
+      }
+    },
+    {
+      "kind": "browser",
+      "label": "actions",
+      "verdict": "PASS",
+      "exit_code": null,
+      "seconds": 0.0,
+      "evidence": "Skip to content\nNavigation Menu\nPlatform\nSolutions\nResources\nOpen Source\nEnterprise\nPricing\nSearch\n/\nSign in\nSign up\npsf\n/\nrequests\nPublic\n Sponsor\nNotifications\nFork 10.1k\n Star 54.3k\nCode\nIssues\n147\nPull requests\n86\nActions\nWiki\nSecurity and quality\n4\nInsights\nActions: psf/requests\nActions\nAll workflows\nAutoclose Issues\nCodeQL\nCopilot\nCopilot code review\nDependabot Updates\nDependency Graph\nGitHub Actions Security Analysis with zizmor 🌈\nLint code\nLock Threads\nPublish to PyPI\nShow more workflows...\nManagement\nCaches\nDeployments\nAll workflows\nShowing runs from all workflows\n2,160 workflow runs\n",
+      "meta": {
+        "url": "https://github.com/psf/requests/actions",
+        "title": "Workflow runs · psf/requests · GitHub"
+      }
+    },
+    {
+      "kind": "browser",
+      "label": "repo",
+      "verdict": "PASS",
+      "exit_code": null,
+      "seconds": 0.0,
+      "evidence": "Skip to content\nNavigation Menu\nSign in\npsf\n/\nrequests\nPublic\n Sponsor\nNotifications\nFork 10.1k\n Star 54.3k\nCode\nIssues\n147\nPull requests\n86\nActions\nWiki\nSecurity and quality\n4\nInsights\nmain\nGo to file\nCode\nLatest commit\ndependabot[bot]\nBump https://github.com/astral-sh/ruff-pre-commit (#7606)\n8f8b212\n · \nHistory\nFolders and files\nName\tLast commit message\tLast commit date\n\n.github\n\t\nBump the actions group with 2 updates (#7596)\n\t\n\n\ndocs\n\t\ndocs: Fix missing hook output in docs example (#7421)\n\t\n\n\next\n\t\nUpdate README and remove extraneous images (#7366)\n\t\n\n\nsrc/requests\n\t\nAdd hasattr checks for ",
+      "meta": {
+        "url": "https://github.com/psf/requests",
+        "title": "GitHub - psf/requests: A simple, yet elegant, HTTP library. · GitHub"
       }
     },
     {
@@ -62,19 +98,19 @@
         },
         "recent_jobs": [
           {
-            "id": 48295916,
-            "market": "97G9NnvBDQ2W",
-            "state": 2
-          },
-          {
-            "id": 48295915,
-            "market": "31P9d5ahEY9i",
+            "id": 48296082,
+            "market": "EuYwNdSDduvF",
             "state": 1
           },
           {
-            "id": 48295914,
-            "market": "7AtiXMSH6R1j",
+            "id": 48296076,
+            "market": "CA5pMpqkYFKt",
             "state": 2
+          },
+          {
+            "id": 48296075,
+            "market": "EuYwNdSDduvF",
+            "state": 1
           }
         ]
       }

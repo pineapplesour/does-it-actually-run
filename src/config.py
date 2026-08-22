@@ -6,7 +6,7 @@ load_dotenv()
 QWEN_KEY   = os.getenv("DASHSCOPE_API_KEY", "")
 QWEN_BASE  = os.getenv("DASHSCOPE_BASE_URL", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
 QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3.8-max")
-BACKEND    = os.getenv("LLM_BACKEND", "qwen")   # qwen | claude(개발용)
+BACKEND    = os.getenv("LLM_BACKEND", "codex")  # qwen | codex | none
 
 BD_TOKEN = os.getenv("BRIGHTDATA_API_TOKEN", "")
 BD_SERP  = os.getenv("BRIGHTDATA_SERP_ZONE", "serp_api1")

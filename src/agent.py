@@ -5,15 +5,24 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-from . import brightdata, daytona_runner, fallback, nosana, qwen
+from . import brightdata, daytona_runner, fallback, llm, nosana
 from .ledger import Ledger, Row
 
 DRAFT_SYS = """너는 리눅스 재현 엔지니어다. 주어진 README 만 보고 이 저장소를 처음부터 설치하고
 동작을 확인하는 bash 스크립트를 쓴다.
 
 규칙:
-- Ubuntu 22.04, root, 인터넷 가능. 대화형 프롬프트 금지 (-y, DEBIAN_FRONTEND=noninteractive).
+- 실행 환경은 아래 "측정된 환경"에 적힌 그대로다. 추측하지 마라.
+  root 가 아닐 수 있다. 그 경우 시스템 패키지 설치는 sudo 를 붙여라
+  (sudo 가 passwordless 로 표시된 경우에만). sudo 가 unavailable 이면
+  apt 를 쓰지 말고 pip / venv / 사용자 홈 경로로 우회해라.
+- 비root 라는 이유로 중단하지 마라. 주어진 권한 안에서 끝까지 시도해라.
+- 대화형 프롬프트 금지 (-y, DEBIAN_FRONTEND=noninteractive).
 - 마지막에 반드시 실제 동작 확인 한 줄을 넣어라 (import, --help, 테스트 등).
+- 검증에 외부 네트워크를 쓰지 마라. arbitrary_http_egress 가 blocked 이거나
+  200 이 아니면 httpbin.org 같은 외부 엔드포인트 호출은 반드시 실패한다.
+  설치 자체(pypi/github)는 되더라도 임의 HTTP 는 막혀 있다. 검증은 폐쇄적으로,
+  즉 import / --version / 로컬 실행으로 끝내라.
 - set -e 로 시작해서 실패하면 즉시 죽게 해라. 조용히 성공한 척하면 안 된다.
 - 성공 시 마지막 줄에 정확히 REPRO_OK 를 출력해라.
 - 설명·마크다운 금지. 순수 bash 만.
@@ -26,19 +35,16 @@ STRATEGIES = [
 ]
 
 
-def _draft(readme: str, repo: str, name: str, hint: str, feedback: str = "") -> str:
+def _draft(readme: str, repo: str, name: str, hint: str, feedback: str = "",
+           env_facts: str = "") -> str:
     user = f"저장소: {repo}\n\n전략: {hint}\n"
+    if env_facts:
+        user += f"\n측정된 환경 (실제 샌드박스에서 관측한 값):\n{env_facts}\n"
     if feedback:
         user += f"\n이전 시도가 실패했다. 에러 로그:\n---\n{feedback[-3000:]}\n---\n이걸 고쳐라.\n"
     user += f"\nREADME:\n---\n{readme[:12000]}\n---"
-    script = qwen.ask(DRAFT_SYS, user, temperature=0.8)
-    if script.strip().startswith("```"):
-        script = script.split("```")[1]
-        if script.startswith("bash"):
-            script = script[4:]
-        elif script.startswith("sh"):
-            script = script[2:]
-    return script.strip()
+    script = llm.ask(DRAFT_SYS, user, temperature=0.8)
+    return llm.strip_fence(script)
 
 
 def _verdict(receipt: dict) -> str:
@@ -71,6 +77,15 @@ def verify(repo: str, n_drafts: int = 3, rounds: int = 2,
            cross_check: bool = True, gpu_step: bool = True, log=print) -> Ledger:
     ledger = Ledger(repo)
 
+    log("[0/5] Daytona: 샌드박스 환경 측정 (추측하지 않는다)")
+    env = daytona_runner.probe_env()
+    env_facts = daytona_runner.env_brief(env)
+    log(f"      user={env.get('user')} uid={env.get('uid')} sudo={env.get('sudo')} "
+        f"python={env.get('python')}")
+    log(f"      egress: pypi={env.get('pypi_reachable')} "
+        f"github={env.get('github_reachable')} "
+        f"arbitrary={env.get('arbitrary_http_egress')}")
+
     log(f"[1/5] Bright Data: README 수집 -> {repo}")
     readme = brightdata.github_readme(repo)
     log(f"      {len(readme):,}자 확보")
@@ -82,7 +97,7 @@ def verify(repo: str, n_drafts: int = 3, rounds: int = 2,
         try:
             with ThreadPoolExecutor(max_workers=n_drafts) as ex:
                 scripts = list(ex.map(
-                    lambda s: _draft(readme, repo, s[0], s[1], feedback),
+                    lambda s: _draft(readme, repo, s[0], s[1], feedback, env_facts),
                     STRATEGIES[:n_drafts]))
             source = "qwen"
         except Exception as e:
