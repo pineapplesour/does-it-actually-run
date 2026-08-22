@@ -1,0 +1,83 @@
+{
+  "summary": {
+    "target": "https://github.com/psf/requests",
+    "status": "REPRODUCIBLE",
+    "drafts_total": 3,
+    "drafts_passed": 2,
+    "winner": "minimal-r1",
+    "winner_seconds": 3.3,
+    "cross_checks": 0,
+    "cross_check_hits": 0,
+    "confidence": 0.67
+  },
+  "rows": [
+    {
+      "kind": "draft",
+      "label": "literal-r1",
+      "verdict": "PASS",
+      "exit_code": 0,
+      "seconds": 4.0,
+      "evidence": "Defaulting to user installation because normal site-packages is not writeable\nRequirement already satisfied: requests in /usr/local/lib/python3.14/site-packages (2.32.5)\nRequirement already satisfied: charset_normalizer<4,>=2 in /usr/local/lib/python3.14/site-packages (from requests) (3.4.7)\nRequirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.14/site-packages (from requests) (3.15)\nRequirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.14/site-packages (from requests) (2.7.0)\nRequirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.14/site-packages (from requests) (2026.4.22)\n\n[notice] A new release of pip is available: 26.0.1 -> 26.2.1\n[notice] To update, run: pip install --upgrade pip\nrequests\nREPRO_OK\n",
+      "meta": {
+        "script": "set -e\nexport DEBIAN_FRONTEND=noninteractive\npip3 install requests\npython3 -c 'import requests; print(requests.__name__)'\necho REPRO_OK\n"
+      }
+    },
+    {
+      "kind": "draft",
+      "label": "pragmatic-r1",
+      "verdict": "FAIL",
+      "exit_code": 100,
+      "seconds": 2.4,
+      "evidence": "E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)\n",
+      "meta": {
+        "script": "set -e\nexport DEBIAN_FRONTEND=noninteractive\napt-get update -qq\napt-get install -y -qq git build-essential python3-pip >/dev/null\ngit clone --depth 1 https://github.com/psf/requests.git /src\ncd /src\npip3 install --break-system-packages -q . 2>/dev/null || pip3 install -q .\npython3 -c 'import requests; print(requests.__name__)'\necho REPRO_OK\n"
+      }
+    },
+    {
+      "kind": "draft",
+      "label": "minimal-r1",
+      "verdict": "PASS",
+      "exit_code": 0,
+      "seconds": 3.3,
+      "evidence": "imported requests\nREPRO_OK\n",
+      "meta": {
+        "script": "set -e\nexport DEBIAN_FRONTEND=noninteractive\npip3 install --break-system-packages -q requests 2>/dev/null || pip3 install -q requests\npython3 -c 'import requests; print(\"imported\", requests.__name__)'\necho REPRO_OK\n"
+      }
+    },
+    {
+      "kind": "gpu",
+      "label": "nosana-gpu",
+      "verdict": "PASS",
+      "exit_code": null,
+      "seconds": 0.0,
+      "evidence": "market=nvidia-3060-community $0.0327/h | recent_jobs=3",
+      "meta": {
+        "key_active": true,
+        "market": {
+          "slug": "nvidia-3060-community",
+          "name": "NVIDIA 3060 Community",
+          "type": "COMMUNITY",
+          "usd_per_hour": 0.0327,
+          "address": "62bAk2ppEL2HpotfPZsscSq4CGEfY6VEqD5dQQuTo7JC"
+        },
+        "recent_jobs": [
+          {
+            "id": 48295916,
+            "market": "97G9NnvBDQ2W",
+            "state": 2
+          },
+          {
+            "id": 48295915,
+            "market": "31P9d5ahEY9i",
+            "state": 1
+          },
+          {
+            "id": 48295914,
+            "market": "7AtiXMSH6R1j",
+            "state": 2
+          }
+        ]
+      }
+    }
+  ]
+}

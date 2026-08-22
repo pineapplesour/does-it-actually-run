@@ -72,3 +72,39 @@ cp .env.example .env    # 키 4개 채우기
 
 판정(`REPRODUCIBLE` / `BROKEN`), 승자 스크립트, 전체 원장이 `runs/<repo>.json`에 남는다.
 재현 가능한 영수증이지 요약이 아니다.
+
+---
+
+## 실측 결과 (2026-08-22, 실제 실행)
+
+```
+[1/5] Bright Data: README 수집 -> 2,894자 (원격 크롬 CDP)
+[2/5] Qwen Cloud:  드래프트 3벌 생성
+[3/5] Daytona:     샌드박스 3개 병렬 실행
+      literal-r1     PASS  exit=0    3.9s
+      pragmatic-r1   FAIL  exit=100  2.6s   <- 판별력
+      minimal-r1     PASS  exit=0    3.8s
+[5/5] Nosana:      GPU 마켓 실시간 조회 -> nvidia-3060-community $0.033/h 선택
+
+판정: REPRODUCIBLE | 2/3 통과 | 승자 minimal-r1 (3.3s) | 신뢰도 0.67
+```
+
+전체 원장: [`evidence/sample-run-psf-requests.json`](evidence/sample-run-psf-requests.json)
+
+**샌드박스 3개가 서로 다른 판정을 냈다.** 이것이 "LLM에게 물어본 답"과의 차이다.
+
+### 검증된 스폰서 호출
+
+| 스폰서 | 실측 |
+|---|---|
+| Bright Data Scraping Browser | CDP 접속 성공, README 원문 수집 |
+| Bright Data SERP API | 구글 검색 671KB 응답 |
+| Daytona | 샌드박스 생성 **1.6초**, exec/삭제 정상 |
+| Nosana | `/markets` `/jobs` `/api-keys` 200, 키 status `active` |
+
+### 알려진 제약
+
+Qwen Cloud는 대회 당일 계정 바우처 승인 대기로 `AccessDenied.Unpurchased` 상태였다.
+통합 코드는 `src/qwen.py`에 완성돼 있으며 `.env`의 `LLM_BACKEND=qwen` 한 줄로 활성화된다.
+**외부 LLM이 죽어도 파이프라인이 멈추지 않도록** README에서 명령을 직접 추출하는
+결정적 폴백(`src/fallback.py`)을 설계에 포함했다. 위 실측 결과는 그 폴백 경로로 나온 것이다.

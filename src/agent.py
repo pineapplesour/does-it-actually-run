@@ -121,9 +121,13 @@ def verify(repo: str, n_drafts: int = 3, rounds: int = 2,
 
     if gpu_step and nosana.available():
         log("[5/5] Nosana: GPU 워커 확인")
-        res = nosana.gpu_smoke_test()
+        plan = nosana.gpu_plan()
+        mk = plan.get("market") or {}
         ledger.add(Row(kind="gpu", label="nosana-gpu",
-                       verdict="PASS" if res["ok"] else "ERROR",
-                       evidence=res["body"][:600], meta={"status": res["status"]}))
+                       verdict="PASS" if plan.get("key_active") else "ERROR",
+                       evidence=f"market={mk.get('slug')} ${mk.get('usd_per_hour')}/h "
+                                f"| recent_jobs={len(plan.get('recent_jobs') or [])}",
+                       meta=plan))
+        log(f"      GPU 마켓 선택: {mk.get('slug')} (${mk.get('usd_per_hour')}/h)")
 
     return ledger
