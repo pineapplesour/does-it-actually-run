@@ -5,7 +5,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-from . import brightdata, daytona_runner, fallback, llm, nosana
+from . import brightdata, daytona_runner, explorer, fallback, llm, nosana
 from .ledger import Ledger, Row
 
 DRAFT_SYS = """너는 리눅스 재현 엔지니어다. 주어진 README 만 보고 이 저장소를 처음부터 설치하고
@@ -74,7 +74,8 @@ async def _cross_check(repo: str, ledger: Ledger):
 
 
 def verify(repo: str, n_drafts: int = 3, rounds: int = 2,
-           cross_check: bool = True, gpu_step: bool = True, log=print) -> Ledger:
+           cross_check: bool = True, gpu_step: bool = True,
+           use_recon: bool = True, log=print) -> Ledger:
     ledger = Ledger(repo)
 
     log("[0/5] Daytona: 샌드박스 환경 측정 (추측하지 않는다)")
@@ -90,6 +91,29 @@ def verify(repo: str, n_drafts: int = 3, rounds: int = 2,
     readme = brightdata.github_readme(repo)
     log(f"      {len(readme):,}자 확보")
 
+    recon = {}
+    if use_recon:
+        log("[1.5/5] Daytona + Qwen: 저장소를 clone 하고 에이전트가 직접 탐색")
+        try:
+            with daytona_runner.open_sandbox(clone=repo) as sb:
+                recon = explorer.recon(sb, repo, log=log)
+            log(f"      생태계={recon.get('ecosystem')} "
+                f"성공기준={str(recon.get('success_check'))[:70]}")
+        except Exception as e:
+            log(f"      정찰 실패({type(e).__name__}), README 단독으로 진행")
+            recon = {}
+
+    recon_block = ""
+    if recon.get("ecosystem") and recon.get("ecosystem") != "unknown":
+        recon_block = (
+            "정찰 결과 (샌드박스에서 실제 저장소를 뒤져 확인한 사실):\n"
+            f"- 생태계: {recon.get('ecosystem')}\n"
+            f"- 확인된 빌드 파일: {recon.get('build_files')}\n"
+            f"- CI/문서에서 확인한 설치 명령: {recon.get('install_commands')}\n"
+            f"- 성공 판정 기준: {recon.get('success_check')}\n"
+            f"  근거: {recon.get('success_reason')}\n"
+            f"- 제약: {recon.get('notes')}\n")
+
     feedback = ""
     for rnd in range(1, rounds + 1):
         log(f"[2/5] Qwen: 드래프트 {n_drafts}벌 생성 (라운드 {rnd})")
@@ -97,7 +121,8 @@ def verify(repo: str, n_drafts: int = 3, rounds: int = 2,
         try:
             with ThreadPoolExecutor(max_workers=n_drafts) as ex:
                 scripts = list(ex.map(
-                    lambda s: _draft(readme, repo, s[0], s[1], feedback, env_facts),
+                    lambda s: _draft(readme, repo, s[0], s[1], feedback,
+                                     env_facts + "\n" + recon_block),
                     STRATEGIES[:n_drafts]))
             source = "qwen"
         except Exception as e:

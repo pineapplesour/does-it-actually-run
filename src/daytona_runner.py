@@ -92,3 +92,22 @@ def env_brief(facts: dict) -> str:
              "arbitrary_http_egress"]
     lines = [f"- {k}: {facts[k]}" for k in order if k in facts]
     return "\n".join(lines)
+
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def open_sandbox(clone: str | None = None, root: str = "/tmp/target"):
+    """정찰용으로 살아있는 샌드박스를 연다. 필요하면 저장소를 clone 해 둔다."""
+    sb = daytona().create()
+    try:
+        if clone:
+            sb.process.exec(
+                f"git clone --depth 1 {clone} {root} 2>&1 | tail -2", timeout=300)
+        yield sb
+    finally:
+        try:
+            sb.delete()
+        except Exception:
+            pass
