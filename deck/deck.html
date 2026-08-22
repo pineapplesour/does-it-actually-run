@@ -99,6 +99,37 @@ pre{font-family:"JetBrains Mono",ui-monospace,monospace;background:#0E1216;
 </div>
 
 <div class="s">
+  <div class="kicker">스폰서 활용 · HOW WE USED EACH SPONSOR</div>
+  <h2>4개 모두 코드 레벨에서 필수 부품<br><span class="en" style="font-size:28px">All four are load-bearing, at code level</span></h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:26px">
+    <div class="card"><h3 class="hl">Bright Data <span style="font-size:14px;color:#7C8590">2 products</span></h3>
+      <p><b>Scraping Browser (CDP)</b> - 원격 크롬에 connect_over_cdp 로 붙어 README 수집. 로컬은 GitHub 레이트리밋에 막힘<br>
+      <b>SERP API</b> - 구글 검색으로 알려진 설치 실패 정황 수집<br>
+      <span class="en">Also replaces Browserbase as Route 3, giving an external network vantage the local routes cannot have.</span><br>
+      <code>src/brightdata.py</code></p></div>
+    <div class="card"><h3 class="hl">Qwen Cloud</h3>
+      <p><code>qwen3.8-max</code>, 워크스페이스 전용 호스트 사용 (동시성·격리)<br>
+      README 를 읽고 <b>서로 다른 전략 3벌</b> 생성: literal / pragmatic / minimal<br>
+      전멸하면 실제 에러 로그를 되먹여 재작성<br>
+      <span class="en">Drafts rival install strategies, then repairs from real logs.</span><br>
+      <code>src/llm.py</code></p></div>
+    <div class="card"><h3 class="gd">Daytona <span style="font-size:14px;color:#7C8590">the heart</span></h3>
+      <p>① <b>환경 측정</b> - uid, sudo, egress 를 추측 대신 실측<br>
+      ② <b>병렬 실행</b> - 샌드박스 3개 동시, 생성 1.6s<br>
+      ③ <b>판정</b> - exit_code==0 && REPRO_OK 만이 통과<br>
+      <span class="en">Without it the project does not exist. Execution is the only truth.</span><br>
+      <code>src/daytona_runner.py</code></p></div>
+    <div class="card"><h3 class="gd">Nosana</h3>
+      <p><code>/markets</code> <code>/jobs</code> <code>/api-keys</code> 실호출<br>
+      가용 GPU 마켓을 조회해 <b>최저가 노드 선택</b><br>
+      실측: <code>nvidia-3060-community</code> $0.033/h<br>
+      <span class="en">Heavy verification steps offload to decentralized GPU.</span><br>
+      <code>src/nosana.py</code></p></div>
+  </div>
+  <div class="n">05</div>
+</div>
+
+<div class="s">
   <div class="kicker">핵심 발견 · THE KEY MOMENT</div>
   <h2>추측을 측정으로 바꾸자 전부 통과했습니다<br><span class="en" style="font-size:29px">We replaced one assumption with a measurement</span></h2>
   <pre><span class="rd">BEFORE</span>  가정: "root 권한, 네트워크 자유"     assumed root + open network
@@ -109,7 +140,7 @@ pre{font-family:"JetBrains Mono",ui-monospace,monospace;background:#0E1216;
         Round 1 → <span class="gd">3/3 PASS</span>   재시도 없음 · 신뢰도 1.0   no retry needed</pre>
   <div class="sub" style="font-size:19px">에이전트에게 진실을 주면 처음부터 맞춥니다.<br>
   <span class="en">Give the agent measured truth and it gets it right the first time.</span></div>
-  <div class="n">05</div>
+  <div class="n">06</div>
 </div>
 
 <div class="s">
@@ -122,7 +153,7 @@ pre{font-family:"JetBrains Mono",ui-monospace,monospace;background:#0E1216;
     <tr><td><b>Daytona</b></td><td>Sandbox create · exec · delete</td><td>생성 <b class="gd">1.6s</b> · 병렬 3개</td></tr>
     <tr><td><b>Nosana</b></td><td>Markets · Jobs · API keys</td><td><code>nvidia-3060</code> <b class="gd">$0.033/h</b> 최저가 선택</td></tr>
   </table>
-  <div class="n">06</div>
+  <div class="n">07</div>
 </div>
 
 <div class="s">
@@ -135,7 +166,7 @@ completeFourRouteEvidence: <span class="rd">false</span>   ← 스스로 미완�
   <div class="sub" style="font-size:19px">증거 등급은 넷뿐입니다 — <code>Verified</code> <code>Failed</code> <code>Not exercised</code> <code>Blocked</code>.<br>
   루트 간 불일치는 다수결로 지우지 않고 <b style="color:#E8EAED">원장에 남깁니다</b>.<br>
   <span class="en">Disagreement is recorded for investigation, never resolved by majority vote.</span></div>
-  <div class="n">07</div>
+  <div class="n">08</div>
 </div>
 
 <div class="s">
@@ -143,6 +174,6 @@ completeFourRouteEvidence: <span class="rd">false</span>   ← 스스로 미완�
   <h1 style="font-size:64px">돌려보지 않은 것은<br><span class="hl">알지 못하는 것입니다.</span></h1>
   <div class="sub" style="font-size:25px">If you didn't run it, you don't know it.</div>
   <div style="margin-top:44px"><code style="font-size:20px;padding:11px 20px">github.com/pineapplesour/does-it-actually-run</code></div>
-  <div class="n">08</div>
+  <div class="n">09</div>
 </div>
 </body></html>
