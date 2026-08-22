@@ -1,0 +1,148 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<title>Does It Actually Run?</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Pretendard","Inter","Noto Sans KR",system-ui,sans-serif;
+       background:#0B0D10; color:#E8EAED; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.s { width:1280px; height:720px; padding:64px 80px; position:relative;
+     page-break-after:always; display:flex; flex-direction:column; justify-content:center;
+     background:#0B0D10; overflow:hidden; }
+.s::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(900px 380px at 88% -10%, rgba(56,189,248,.13), transparent 60%),
+  radial-gradient(700px 340px at -8% 110%, rgba(34,197,94,.10), transparent 60%);pointer-events:none}
+.n { position:absolute; right:44px; bottom:32px; font-size:15px; color:#4A5058; letter-spacing:.08em }
+h1 { font-size:82px; line-height:1.03; font-weight:800; letter-spacing:-.03em }
+h2 { font-size:46px; font-weight:750; letter-spacing:-.02em; margin-bottom:6px }
+.en { color:#7C8590; font-weight:500 }
+.sub { font-size:23px; color:#98A2AE; margin-top:22px; line-height:1.5 }
+.kicker{font-size:15px;letter-spacing:.19em;color:#38BDF8;font-weight:700;margin-bottom:22px}
+.big { font-size:56px; font-weight:800; line-height:1.18; letter-spacing:-.025em }
+.hl { color:#38BDF8 } .gd { color:#22C55E } .rd { color:#F87171 } .am{color:#FBBF24}
+.grid{display:grid;gap:16px;margin-top:34px}
+.card{background:#12161B;border:1px solid #1F262E;border-radius:14px;padding:22px 24px}
+.card h3{font-size:21px;font-weight:700;margin-bottom:7px}
+.card p{font-size:16px;color:#98A2AE;line-height:1.5}
+table{width:100%;border-collapse:collapse;margin-top:26px;font-size:18px}
+th,td{text-align:left;padding:13px 14px;border-bottom:1px solid #1F262E}
+th{color:#7C8590;font-size:14px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+code{font-family:"JetBrains Mono",ui-monospace,monospace;background:#12161B;
+     border:1px solid #1F262E;border-radius:6px;padding:2px 8px;font-size:.92em;color:#7DD3FC}
+pre{font-family:"JetBrains Mono",ui-monospace,monospace;background:#0E1216;
+    border:1px solid #1F262E;border-left:3px solid #38BDF8;border-radius:12px;
+    padding:22px 26px;font-size:17px;line-height:1.62;color:#C7CDD4;margin-top:24px}
+.flow{display:flex;align-items:stretch;gap:12px;margin-top:34px}
+.step{flex:1;background:#12161B;border:1px solid #1F262E;border-radius:13px;padding:18px 16px}
+.step .t{font-size:12px;letter-spacing:.13em;color:#38BDF8;font-weight:700;margin-bottom:9px}
+.step .b{font-size:16px;font-weight:650;line-height:1.35}
+.step .c{font-size:13px;color:#7C8590;margin-top:7px;line-height:1.4}
+.pill{display:inline-block;background:#12161B;border:1px solid #1F262E;border-radius:999px;
+      padding:7px 17px;font-size:15px;color:#98A2AE;margin:5px 7px 0 0}
+</style></head><body>
+
+<div class="s">
+  <div class="kicker">AGENT FORGE AI HACKATHON SEOUL · 2026.08.22</div>
+  <h1>Does It Actually<br>Run<span class="hl">?</span></h1>
+  <div class="sub">README대로 진짜 되는지, 격리 샌드박스에서 <b style="color:#E8EAED">실제로 돌려보고</b> 판정합니다.<br>
+  <span class="en">We don't ask a model whether it works. We run it, and read the exit code.</span></div>
+  <div style="margin-top:40px">
+    <span class="pill">Bright Data</span><span class="pill">Qwen Cloud</span>
+    <span class="pill">Daytona</span><span class="pill">Nosana</span>
+  </div>
+  <div class="n">01</div>
+</div>
+
+<div class="s">
+  <div class="kicker">문제 · THE PROBLEM</div>
+  <h2>README대로 하면, 절반은 안 됩니다<br><span class="en" style="font-size:31px">Half of READMEs don't actually work</span></h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><h3>의존성이 빠져 있다</h3><p>Missing system dependencies nobody documented</p></div>
+    <div class="card"><h3>명령이 낡았다</h3><p>Commands that broke three releases ago</p></div>
+    <div class="card"><h3>아무도 다시 안 돌려봤다</h3><p>Nobody re-ran it after the last merge</p></div>
+    <div class="card" style="border-color:#3B2226"><h3 class="rd">LLM은 더 나쁘다</h3>
+      <p>돌려본 적도 없이 "된다"고 지어냅니다.<br>An LLM will confidently say yes — it never ran anything.</p></div>
+  </div>
+  <div class="n">02</div>
+</div>
+
+<div class="s">
+  <div class="kicker">해법 · THE APPROACH</div>
+  <div class="big">묻지 않습니다.<br><span class="hl">돌려봅니다.</span></div>
+  <div class="sub">We don't ask. <b style="color:#E8EAED">We run it.</b></div>
+  <pre>verdict = (exit_code == 0) and ("REPRO_OK" in stdout)
+
+# 판정은 모델의 의견이 아니라 종료 코드입니다.
+# The verdict is an exit code, not a model's opinion.
+# 신뢰도 = 실제로 통과한 샌드박스 비율 (모델 자기신고 아님)
+# Confidence = fraction of sandboxes that actually passed.</pre>
+  <div class="n">03</div>
+</div>
+
+<div class="s">
+  <div class="kicker">구조 · ARCHITECTURE</div>
+  <h2>스폰서 4개가 전부 필수 부품<br><span class="en" style="font-size:29px">All four sponsors are load-bearing</span></h2>
+  <div class="flow">
+    <div class="step"><div class="t">MEASURE</div><div class="b">Daytona</div>
+      <div class="c">샌드박스 환경을 추측하지 않고 직접 측정<br>Probe, don't assume</div></div>
+    <div class="step"><div class="t">COLLECT</div><div class="b">Bright Data</div>
+      <div class="c">SERP + 원격 크롬으로 README·정황 수집<br>SERP + Scraping Browser</div></div>
+    <div class="step"><div class="t">DRAFT</div><div class="b">Qwen Cloud</div>
+      <div class="c">서로 다른 전략 3벌 생성<br>3 rival install strategies</div></div>
+    <div class="step"><div class="t">EXECUTE</div><div class="b">Daytona ×3</div>
+      <div class="c">격리 샌드박스 병렬 실행<br>Isolated, parallel, disposable</div></div>
+    <div class="step"><div class="t">SCALE</div><div class="b">Nosana</div>
+      <div class="c">GPU 스텝을 탈중앙 GPU로<br>Decentralized GPU offload</div></div>
+  </div>
+  <div class="sub" style="font-size:19px">승자는 LLM이 고르지 않습니다. <b style="color:#E8EAED">실행 영수증으로 코드가 결정합니다.</b><br>
+  <span class="en">The winner is chosen by execution receipts, not by a model.</span></div>
+  <div class="n">04</div>
+</div>
+
+<div class="s">
+  <div class="kicker">핵심 발견 · THE KEY MOMENT</div>
+  <h2>추측을 측정으로 바꾸자 전부 통과했습니다<br><span class="en" style="font-size:29px">We replaced one assumption with a measurement</span></h2>
+  <pre><span class="rd">BEFORE</span>  가정: "root 권한, 네트워크 자유"     assumed root + open network
+        Round 1 → <span class="rd">0/3 FAIL</span>   (apt: Permission denied / httpbin: Connection reset)
+        Round 2 → 3/3 PASS   자가수정 루프가 복구 self-repair loop recovered
+
+<span class="gd">AFTER</span>   측정: uid=1001, sudo=passwordless, arbitrary_http_egress=<span class="am">blocked</span>
+        Round 1 → <span class="gd">3/3 PASS</span>   재시도 없음 · 신뢰도 1.0   no retry needed</pre>
+  <div class="sub" style="font-size:19px">에이전트에게 진실을 주면 처음부터 맞춥니다.<br>
+  <span class="en">Give the agent measured truth and it gets it right the first time.</span></div>
+  <div class="n">05</div>
+</div>
+
+<div class="s">
+  <div class="kicker">실측 · MEASURED, NOT CLAIMED</div>
+  <h2>모든 숫자는 실제 실행 결과입니다<br><span class="en" style="font-size:29px">Every number below came from a real run</span></h2>
+  <table>
+    <tr><th>스폰서 / Sponsor</th><th>사용 / What we use</th><th>실측 / Observed</th></tr>
+    <tr><td><b>Bright Data</b></td><td>SERP API · Scraping Browser (CDP)</td><td>README 2,894자 · 원격 크롬 10.5s</td></tr>
+    <tr><td><b>Qwen Cloud</b></td><td><code>qwen3.8-max</code> workspace host</td><td>드래프트 3벌 / 라운드</td></tr>
+    <tr><td><b>Daytona</b></td><td>Sandbox create · exec · delete</td><td>생성 <b class="gd">1.6s</b> · 병렬 3개</td></tr>
+    <tr><td><b>Nosana</b></td><td>Markets · Jobs · API keys</td><td><code>nvidia-3060</code> <b class="gd">$0.033/h</b> 최저가 선택</td></tr>
+  </table>
+  <div class="n">06</div>
+</div>
+
+<div class="s">
+  <div class="kicker">정직성 · WHAT WE REFUSE TO DO</div>
+  <div class="big">안 돌린 것을<br><span class="hl">통과로 세지 않습니다.</span></div>
+  <div class="sub">We never count what we didn't run.</div>
+  <pre>routeStates:  playwright <span class="gd">Verified</span>   brightdata <span class="gd">Verified</span>
+              agent-browser <span class="am">Not exercised</span>   dogfood <span class="am">Not exercised</span>
+completeFourRouteEvidence: <span class="rd">false</span>   ← 스스로 미완성을 신고합니다</pre>
+  <div class="sub" style="font-size:19px">증거 등급은 넷뿐입니다 — <code>Verified</code> <code>Failed</code> <code>Not exercised</code> <code>Blocked</code>.<br>
+  루트 간 불일치는 다수결로 지우지 않고 <b style="color:#E8EAED">원장에 남깁니다</b>.<br>
+  <span class="en">Disagreement is recorded for investigation, never resolved by majority vote.</span></div>
+  <div class="n">07</div>
+</div>
+
+<div class="s">
+  <div class="kicker">THANK YOU</div>
+  <h1 style="font-size:64px">돌려보지 않은 것은<br><span class="hl">알지 못하는 것입니다.</span></h1>
+  <div class="sub" style="font-size:25px">If you didn't run it, you don't know it.</div>
+  <div style="margin-top:44px"><code style="font-size:20px;padding:11px 20px">github.com/pineapplesour/does-it-actually-run</code></div>
+  <div class="n">08</div>
+</div>
+</body></html>
