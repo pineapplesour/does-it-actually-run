@@ -1,0 +1,275 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>Does It Actually Run?</title>
+<style>
+:root{--ink:#0d2346;--ink-soft:#31445f;--muted:#68778b;--muted-light:#96a1af;
+--line:#dfe6ef;--line-dark:#d2ddea;--canvas:#f3f7fc;--surface:#fff;--surface-soft:#fafbfc;
+--accent:#16305c;--accent-dark:#0d2346;--accent-soft:#eaf1fa;--blue:#315e9b;--blue-soft:#eaf1fa;
+--green:#2f7962;--green-soft:#eaf5f0;--amber:#b8873b;--amber-soft:#f5efe4;--rose:#a35268;--rose-soft:#faedf1;
+--shadow-sm:0 1px 2px rgba(18,28,45,.04);--shadow-md:0 14px 40px rgba(28,38,56,.1);
+--shadow:0 18px 55px rgba(13,35,70,.08);--r-xl:24px;--r-lg:18px;--r-md:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Pretendard","Inter","Noto Sans KR",system-ui,sans-serif;background:var(--canvas);
+color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+.topbar{height:62px;display:flex;align-items:center;gap:12px;padding:0 34px;background:var(--surface);
+border-bottom:1px solid var(--line)}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;
+place-items:center;font-weight:900;font-size:15px}
+.brand strong{font-size:16px;letter-spacing:-.01em}
+.brand small{display:block;color:var(--muted-light);font-size:11px;letter-spacing:.05em}
+.chips{margin-left:auto;display:flex;gap:6px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:750;
+color:var(--muted);background:var(--surface)}
+.chip.on{background:var(--accent-soft);border-color:#c9dcf1;color:var(--blue)}
+.page{max-width:940px;margin:0 auto;padding:38px 34px 120px}
+h1{font-size:38px;font-weight:800;letter-spacing:-.035em;line-height:1.15}
+.lede{color:var(--muted);font-size:16px;margin-top:11px;max-width:660px}
+.lede b{color:var(--ink-soft)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);
+box-shadow:var(--shadow);padding:26px;margin-top:26px}
+.field{display:flex;gap:11px}
+.inp{flex:1;border:1px solid var(--line-dark);border-radius:var(--r-md);padding:14px 16px;
+font-family:ui-monospace,monospace;font-size:14px;color:var(--blue);background:var(--surface-soft);
+display:flex;align-items:center;min-height:50px}
+.caret{width:8px;height:17px;background:var(--blue);margin-left:2px;animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:var(--r-md);
+padding:0 26px;font-size:14px;font-weight:750;cursor:pointer;box-shadow:0 8px 22px rgba(22,48,92,.2);
+transition:transform .16s,background .16s}
+.btn:hover{background:#234373;transform:translateY(-1px)}
+.btn.pressed{transform:scale(.96);background:#0d2346}
+.steps{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+.st{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);padding:0 20px;
+max-height:0;opacity:0;overflow:hidden;transition:max-height .5s ease,opacity .4s,padding .4s,box-shadow .4s,border-color .4s}
+.st.show{max-height:620px;opacity:1;padding:18px 20px}
+.st.active{border-color:#a9c6e6;box-shadow:0 12px 32px rgba(22,48,92,.12)}
+.st.done{border-color:#cfe2d8;background:#fcfefd}
+.sh{display:flex;align-items:center;gap:11px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex:none}
+.st.active .dot{animation:pu 1s infinite}@keyframes pu{50%{opacity:.3;transform:scale(.75)}}
+.st.done .dot{background:var(--green);animation:none}
+.sname{font-size:15px;font-weight:750;letter-spacing:-.01em}
+.sname em{font-style:normal;color:var(--muted-light);font-weight:600;margin-left:7px;font-size:13px}
+.vend{margin-left:auto;font-size:10px;letter-spacing:.11em;font-weight:850;padding:4px 9px;border-radius:6px;
+background:var(--accent-soft);color:var(--blue)}
+.st.done .vend{background:var(--green-soft);color:var(--green)}
+.log{font-family:ui-monospace,monospace;font-size:12.5px;line-height:1.9;color:var(--ink-soft);
+margin-top:12px;border-left:2px solid var(--line);padding-left:14px;white-space:pre-wrap}
+.log .g{color:var(--green);font-weight:700}.log .r{color:var(--rose);font-weight:700}
+.log .a{color:var(--amber);font-weight:700}.log .c{color:var(--blue);font-weight:600}
+.log .d{color:var(--muted-light)}
+.rep{opacity:0;transform:translateY(16px);transition:.6s;margin-top:30px}
+.rep.show{opacity:1;transform:none}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.mc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;
+box-shadow:var(--shadow-sm)}
+.mc .l{font-size:10px;letter-spacing:.13em;color:var(--muted-light);font-weight:800}
+.mc .v{font-size:26px;font-weight:800;margin-top:7px;letter-spacing:-.025em}
+.gr{color:var(--green)}.bl{color:var(--blue)}
+h2{font-size:20px;font-weight:750;margin:28px 0 4px;letter-spacing:-.02em}
+h2 em{font-style:normal;color:var(--muted-light);font-size:13px;font-weight:600;margin-left:8px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;background:var(--surface);
+border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+th{color:var(--muted-light);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;
+background:var(--surface-soft)}
+code{font-family:ui-monospace,monospace;background:var(--accent-soft);border-radius:5px;padding:2px 6px;
+font-size:.87em;color:var(--blue)}
+.note{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:var(--r-md);
+padding:16px 19px;margin-top:18px;font-size:14px;color:var(--ink-soft);background:var(--amber-soft)}
+.note.b{border-left-color:var(--blue);background:var(--blue-soft)}
+.foot{margin-top:38px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted-light);font-size:13px}
+
+/* ---- guided tour (arche 문법) ---- */
+.tour{position:fixed;inset:0;z-index:900}
+.tour[hidden]{display:none}
+.spot{position:fixed;z-index:901;border:1px solid rgba(255,255,255,.95);border-radius:18px;
+box-shadow:0 0 0 9999px rgba(5,16,34,.66),0 0 0 4px rgba(255,255,255,.95),0 0 0 7px rgba(72,117,175,.62),
+0 18px 48px rgba(4,15,33,.24);pointer-events:none;transition:all .34s cubic-bezier(.2,.8,.2,1)}
+.ptr{position:fixed;z-index:902;width:104px;height:139px;pointer-events:none;
+filter:drop-shadow(0 9px 0 rgba(4,15,33,.25));transition:all .34s cubic-bezier(.2,.8,.2,1)}
+.ptr svg{width:100%;height:100%;overflow:visible;animation:click 1.4s steps(2,end) infinite}
+@keyframes click{0%,42%,100%{transform:none}50%,56%{transform:translate(2px,3px) scale(.94)}}
+.halo{fill:#ffe27a;stroke:#ffe27a;stroke-width:9;stroke-linejoin:round}
+.side{fill:#eab63d;stroke:#05070a;stroke-width:4;stroke-linejoin:round}
+.arw{fill:#f8c94b;stroke:#05070a;stroke-width:4.5;stroke-linejoin:round}
+.pop{position:fixed;z-index:903;display:grid;gap:12px;width:352px;padding:22px;
+border:1px solid rgba(201,216,234,.9);border-radius:20px;background:rgba(255,255,255,.985);
+box-shadow:0 28px 80px rgba(5,22,48,.25);animation:popin .3s cubic-bezier(.2,.8,.2,1) both;
+transition:all .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes popin{from{opacity:0;transform:translateY(12px) scale(.985)}}
+.pop .num{color:var(--accent);font-size:11px;font-weight:850;letter-spacing:.08em}
+.prog{height:3px;border-radius:999px;background:#e3eaf3;overflow:hidden}
+.prog i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#16305c,#4d79b1);
+transition:width .3s ease}
+.pop h3{font-size:20px;line-height:1.3;letter-spacing:-.035em;font-weight:800}
+.pop p{color:#4f6075;font-size:13.5px;line-height:1.65}
+.pop .en{color:var(--muted-light);font-size:12px;line-height:1.5}
+</style></head><body>
+
+<div class="topbar">
+  <div class="mark">✓</div>
+  <div class="brand"><strong>Does It Actually Run?</strong><small>REPRODUCIBILITY VERIFIER</small></div>
+  <div class="chips">
+    <span class="chip" id="c-bd">Bright Data</span><span class="chip" id="c-qw">Qwen Cloud</span>
+    <span class="chip" id="c-dt">Daytona</span><span class="chip" id="c-ns">Nosana</span>
+  </div>
+</div>
+
+<div class="page">
+  <h1>레포 주소 하나면 됩니다</h1>
+  <div class="lede">README대로 진짜 되는지, 격리 샌드박스에서 <b>실제로 돌려보고</b> 판정합니다.
+  모델에게 묻지 않습니다.<br><span style="color:var(--muted-light);font-size:14px">We don't ask a model whether it works. We run it, and read the exit code.</span></div>
+
+  <div class="panel" id="panel">
+    <div class="field">
+      <div class="inp" id="inp"><span id="typed"></span><span class="caret"></span></div>
+      <button class="btn" id="go">검증 · Verify</button>
+    </div>
+    <div class="steps" id="steps"></div>
+  </div>
+
+  <div class="rep" id="rep">
+    <div class="cards">
+      <div class="mc"><div class="l">판정 · VERDICT</div><div class="v gr">✅ 재현됨</div></div>
+      <div class="mc"><div class="l">통과 샌드박스 · PASSED</div><div class="v">3 / 3</div></div>
+      <div class="mc"><div class="l">신뢰도 · CONFIDENCE</div><div class="v bl">1.0</div></div>
+    </div>
+    <h2>1단계 · 설치 검증<em>Install verification</em></h2>
+    <table><tr><th>샌드박스</th><th>전략</th><th>상태</th><th>exit</th><th>소요</th></tr>
+    <tr><td><code>literal-r1</code></td><td>README 문자 그대로</td><td class="gr"><b>PASS</b></td><td>0</td><td>3.5s</td></tr>
+    <tr><td><code>pragmatic-r1</code></td><td>누락 의존성 보충</td><td class="gr"><b>PASS</b></td><td>0</td><td>10.3s</td></tr>
+    <tr><td><code>minimal-r1</code></td><td>최소 경로</td><td class="gr"><b>PASS</b></td><td>0</td><td>6.9s</td></tr></table>
+    <div class="note b">승자 <code>literal-r1</code> (3.5s). 승자는 모델이 고르지 않습니다.
+    <b>실행 영수증으로 코드가 결정합니다.</b><br>
+    <span style="color:var(--muted-light);font-size:12.5px">The winner is chosen by execution receipts, not by a model.</span></div>
+
+    <h2>2단계 · 동작 검증<em>Runtime verification, 4 routes</em></h2>
+    <table><tr><th>루트</th><th>구현</th><th>상태</th></tr>
+    <tr><td><code>playwright</code></td><td>로컬 크로미움</td><td class="gr"><b>Verified</b></td></tr>
+    <tr><td><code>brightdata</code></td><td>Bright Data Scraping Browser (원격 CDP)</td><td class="gr"><b>Verified</b></td></tr>
+    <tr><td><code>agent-browser</code></td><td>로컬 세션</td><td style="color:var(--amber)"><b>Not exercised</b></td></tr>
+    <tr><td><code>dogfood</code></td><td>실사용자 경로</td><td style="color:var(--amber)"><b>Not exercised</b></td></tr></table>
+    <div class="note"><b>completeFourRouteEvidence: false</b><br>
+    안 돌린 루트를 통과로 세지 않습니다. 시스템이 스스로 미완성을 신고합니다.<br>
+    <span style="color:var(--muted-light);font-size:12.5px">We never count what we didn't run.</span></div>
+
+    <h2>핵심 발견<em>Assumption replaced by measurement</em></h2>
+    <div class="note b"><b style="color:var(--rose)">가정</b> root 권한 + 자유로운 네트워크 → 라운드1 <b style="color:var(--rose)">0/3 실패</b><br>
+    <b style="color:var(--green)">측정</b> <code>uid=1001</code> <code>sudo=passwordless</code> <code>arbitrary_http_egress=blocked</code> → 라운드1 <b style="color:var(--green)">3/3 통과</b><br>
+    <span style="color:var(--muted-light);font-size:12.5px">Give the agent measured truth and it gets it right the first time.</span></div>
+    <div class="foot">github.com/pineapplesour/does-it-actually-run</div>
+  </div>
+</div>
+
+<div class="tour" id="tour" hidden>
+  <div class="spot" id="spot"></div>
+  <div class="ptr" id="ptr"><svg viewBox="0 0 112 149"><path class="halo" d="M18 12 L18 108 L42 88 L58 128 L78 118 L62 80 L94 74 Z"/><path class="side" d="M18 12 L18 108 L42 88 L58 128 L78 118 L62 80 L94 74 Z"/><path class="arw" d="M22 18 L22 100 L44 82 L59 120 L73 114 L58 76 L86 71 Z"/></svg></div>
+  <div class="pop" id="pop"><div class="num" id="pnum"></div><div class="prog"><i id="pbar"></i></div>
+  <h3 id="ptitle"></h3><p id="pdesc"></p><div class="en" id="pen"></div></div>
+</div>
+
+<script>
+const REPO="https://github.com/psf/requests";
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const $=id=>document.getElementById(id);
+async function type(el,t,d){for(const c of t){el.textContent+=c;await sleep(d)}}
+
+const TOUR=[
+ {sel:"#inp",t:"검증할 저장소를 넣습니다",d:"GitHub 주소 하나면 충분합니다. 설정도, 스크립트도 필요 없습니다.",en:"One GitHub URL. No config, no scripts."},
+ {sel:"#c-dt",t:"환경을 추측하지 않습니다",d:"Daytona 샌드박스를 먼저 띄워 uid·sudo·네트워크를 실제로 재봅니다. 이 사실이 이후 모든 판단의 기준이 됩니다.",en:"We measure the sandbox before we reason about it."},
+ {sel:"#c-bd",t:"막힌 웹도 뚫고 가져옵니다",d:"Bright Data 원격 브라우저로 README를 수집하고, SERP API로 이미 알려진 설치 실패 정황까지 찾습니다.",en:"Remote browser plus SERP, so blocks don't stop us."},
+ {sel:"#c-qw",t:"서로 다른 3벌을 짭니다",d:"Qwen Cloud가 literal·pragmatic·minimal 세 전략으로 설치 스크립트를 만듭니다. 하나가 아니라 셋입니다.",en:"Three rival install strategies, not one guess."},
+ {sel:"#go",t:"그리고 진짜로 돌립니다",d:"샌드박스 3개에서 동시에 실행합니다. 통과 기준은 단 하나, 종료 코드 0과 REPRO_OK 입니다.",en:"Three sandboxes, in parallel. The verdict is an exit code."},
+];
+function place(sel,i){
+ const r=document.querySelector(sel).getBoundingClientRect(), pad=9;
+ const sp=$("spot");
+ sp.style.cssText+=`left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px`;
+ $("ptr").style.cssText+=`left:${r.right-26}px;top:${r.bottom-14}px`;
+ const p=$("pop"); let L=r.left, T=r.bottom+28;
+ if(T+260>innerHeight) T=Math.max(20,r.top-268);
+ p.style.left=Math.min(L,innerWidth-380)+"px"; p.style.top=T+"px";
+ $("pnum").textContent=`STEP ${i+1} / ${TOUR.length}`;
+ $("pbar").style.width=((i+1)/TOUR.length*100)+"%";
+}
+async function tour(){
+ $("tour").hidden=false;
+ for(let i=0;i<TOUR.length;i++){
+  const s=TOUR[i]; place(s.sel,i);
+  $("ptitle").textContent=s.t; $("pdesc").textContent=s.d; $("pen").textContent=s.en;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+  if(s.sel.startsWith("#c-"))document.querySelector(s.sel).classList.add("on");
+  await sleep(i===0?3000:3400);
+ }
+ $("tour").hidden=true;
+ document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+}
+
+const STEPS=[
+ {n:"환경 측정",e:"Probe environment",v:"DAYTONA",lines:[
+  ["d","$ 샌드박스 생성"],["","sandbox 6b0e9b09 ready in "],["g","1.6s\n"],
+  ["","user=daytona  uid="],["a","1001"],["d","  (root 아님)\n"],
+  ["","sudo="],["g","passwordless\n"],
+  ["","egress  pypi="],["g","200"],["","  github="],["g","200"],["","  arbitrary="],["r","blocked\n"],
+  ["d","→ 추측하지 않는다. 이 사실을 드래프터에게 넘긴다."]]},
+ {n:"저장소 수집",e:"Fetch repository",v:"BRIGHT DATA",lines:[
+  ["d","$ connect_over_cdp(wss://brd.superproxy.io:9222)\n"],
+  ["","원격 크롬 세션 확보  "],["g","OK\n"],
+  ["","README.md  "],["c","2,894"],["","자 수집\n"],
+  ["d","$ SERP API  zone=serp_api1\n"],
+  ["","알려진 설치 실패 정황 조회  "],["g","200"]]},
+ {n:"정찰",e:"Recon with tools",v:"QWEN + DAYTONA",lines:[
+  ["d","에이전트가 샌드박스 안에서 저장소를 직접 뒤진다\n"],
+  ["c","🔍 list_dir(.)"],["d","  → 412B\n"],
+  ["c","🔍 read_file(setup.cfg)"],["d","  → 1.2kB\n"],
+  ["c","🔍 read_file(.github/workflows/run-tests.yml)"],["d","  → 2.0kB\n"],
+  ["","생태계="],["g","python"],["","  성공기준="],["c","python -c 'import requests'"]]},
+ {n:"스크립트 생성",e:"Draft install scripts",v:"QWEN CLOUD",lines:[
+  ["d","model=qwen3.8-max  host=ws-yncaz1m74398smyk\n"],
+  ["","서로 다른 전략 3벌 동시 생성\n"],
+  ["c","  literal"],["d","     README 문자 그대로\n"],
+  ["c","  pragmatic"],["d","   누락 시스템 의존성 보충\n"],
+  ["c","  minimal"],["d","     최소 경로로 핵심만 증명"]]},
+ {n:"샌드박스 병렬 실행",e:"Execute",v:"DAYTONA ×3",lines:[
+  ["d","격리 샌드박스 3개 동시 기동\n"],
+  ["","literal-r1     "],["g","PASS"],["","  exit=0   3.5s\n"],
+  ["","pragmatic-r1   "],["g","PASS"],["","  exit=0  10.3s\n"],
+  ["","minimal-r1     "],["g","PASS"],["","  exit=0   6.9s\n"],
+  ["d","판정 = exit_code==0 && \"REPRO_OK\" in stdout"]]},
+ {n:"GPU 워커",e:"Offload",v:"NOSANA",lines:[
+  ["d","$ GET /markets   Bearer nos_***\n"],
+  ["","가용 GPU 마켓 조회  "],["g","200\n"],
+  ["","최저가 선택  "],["c","nvidia-3060-community"],["","  "],["g","$0.033/h\n"],
+  ["","API key status  "],["g","active"]]},
+];
+const CHIP={"BRIGHT DATA":"c-bd","QWEN CLOUD":"c-qw","DAYTONA":"c-dt","DAYTONA ×3":"c-dt",
+ "NOSANA":"c-ns","QWEN + DAYTONA":"c-qw"};
+async function run(){
+ const box=$("steps");
+ for(const s of STEPS){
+  const el=document.createElement("div"); el.className="st";
+  el.innerHTML=`<div class="sh"><div class="dot"></div>
+   <div class="sname">${s.n}<em>${s.e}</em></div><div class="vend">${s.v}</div></div><div class="log"></div>`;
+  box.appendChild(el); await sleep(50); el.classList.add("show","active");
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+  const ch=CHIP[s.v]; if(ch)$(ch).classList.add("on");
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+  const log=el.querySelector(".log");
+  for(const [cls,txt] of s.lines){
+   const sp=document.createElement("span"); if(cls)sp.className=cls;
+   log.appendChild(sp); await type(sp,txt,10); await sleep(90);
+  }
+  await sleep(400); el.classList.remove("active"); el.classList.add("done");
+ }
+ document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+ await sleep(400); $("rep").classList.add("show");
+ await sleep(300); $("rep").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("go").onclick=()=>{$("steps").innerHTML="";$("rep").classList.remove("show");run()};
+window.startDemo=async()=>{
+ await sleep(900); await tour(); await sleep(500);
+ await type($("typed"),REPO,44); await sleep(700);
+ const b=$("go"); b.classList.add("pressed"); await sleep(240); b.classList.remove("pressed");
+ await run();
+};
+</script></body></html>
