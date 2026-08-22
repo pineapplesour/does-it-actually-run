@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Verification Fixture</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; }
+    body { margin: 0; color: #777; background: #fff; }
+    main { padding: 24px; min-width: 920px; }
+    .collision { position: relative; height: 48px; margin: 24px 0; }
+    .collision span { position: absolute; inset: 0 auto auto 0; font-size: 28px; }
+    .tiny { font-size: 7px; }
+    button { padding: 10px 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Seeded verification fixture</h1>
+    <p>This page deliberately contains measurable defects for the package self-test.</p>
+    <div class="collision">
+      <span>Overlapping foreground text</span>
+      <span>Overlapping background text</span>
+    </div>
+    <p class="tiny">This text is intentionally too small.</p>
+    <button id="primary" type="button">Show result</button>
+    <output id="result" aria-live="polite"></output>
+  </main>
+  <script>
+    document.querySelector('#primary').addEventListener('click', () => {
+      document.querySelector('#result').textContent = 'Primary action completed';
+    });
+  </script>
+</body>
+</html>

@@ -108,3 +108,43 @@ Qwen Cloud는 대회 당일 계정 바우처 승인 대기로 `AccessDenied.Unpu
 통합 코드는 `src/qwen.py`에 완성돼 있으며 `.env`의 `LLM_BACKEND=qwen` 한 줄로 활성화된다.
 **외부 LLM이 죽어도 파이프라인이 멈추지 않도록** README에서 명령을 직접 추출하는
 결정적 폴백(`src/fallback.py`)을 설계에 포함했다. 위 실측 결과는 그 폴백 경로로 나온 것이다.
+
+---
+
+## 2단계: 4루트 브라우저 검증 (설치 검증 위에 얹음)
+
+설치가 통과했다고 앱이 동작하는 건 아니다. 그래서 두 번째 게이트를 붙였다.
+
+```
+Route 1  playwright     로컬 크롬, 네비게이션 전 에러 리스너
+Route 2  agent-browser  로컬, 명명 세션 스냅샷
+Route 3  brightdata     Bright Data Scraping Browser (원격 CDP)   <- 교체
+Route 4  dogfood        실사용자 경로
+```
+
+**Route 3을 Browserbase에서 Bright Data Scraping Browser로 교체했다.**
+단순 벤더 스왑이 아니다. 루트 1·2·4는 전부 *이 머신의 네트워크*에서 관측한다.
+Route 3만 *외부 egress*에서 관측한다. localhost 바인딩, 지역 차단, CDN·엣지 장애,
+봇 차단 — 로컬 루트가 설계상 볼 수 없는 실패들이 여기서 잡힌다.
+독립성이 브라우저 바이너리 개수가 아니라 **관측 지점**에서 나온다.
+
+```bash
+node skills/four-route-browser-verification/scripts/brightdata-probe.mjs \
+  --target https://example.com --run ./evidence/run-001
+node skills/four-route-browser-verification/scripts/compare-results.mjs \
+  --run ./evidence/run-001
+```
+
+실측 (2026-08-22):
+
+```
+brightdata  Verified   10.5s   title="Example Domain"  controls=1  text=127자
+playwright  Verified            (동일 사실 측정)
+루트 간 불일치: 0
+requiredRoutes: playwright / agent-browser / brightdata / dogfood
+completeFourRouteEvidence: false  <- agent-browser·dogfood 미실행이므로 정직하게 false
+```
+
+마지막 줄이 핵심이다. **안 돌린 루트를 통과로 세지 않는다.**
+증거 등급은 `Verified / Failed / Not exercised / Blocked` 네 가지뿐이고,
+루트 간 불일치는 다수결로 지우지 않고 **조사 대상으로 원장에 남긴다.**

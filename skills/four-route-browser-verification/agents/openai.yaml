@@ -1,0 +1,4 @@
+interface:
+  display_name: "Four-Route Browser Verification"
+  short_description: "Cross-check web UI evidence across four verification routes"
+  default_prompt: "Use $four-route-browser-verification to verify this web UI across Playwright, agent-browser, Browserbase ui-test, and dogfood."

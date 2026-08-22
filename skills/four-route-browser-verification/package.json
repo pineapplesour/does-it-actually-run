@@ -1,0 +1,15 @@
+{
+  "name": "four-route-browser-verification",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reproducible evidence tooling for four-route browser verification",
+  "scripts": {
+    "check": "./scripts/self-test.sh",
+    "compare": "node scripts/compare-results.mjs",
+    "report": "node scripts/build-report.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.62.1"
+  }
+}
